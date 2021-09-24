@@ -85,3 +85,12 @@ Uint8List grayscaleToByteListFloat32(imglib.Image image){
   }
   return convertedBytes.buffer.asUint8List();
 }
+/*Future<String?> get _localPath async{
+    final dir = await getExternalStorageDirectory();
+    //print(dir.path);
+    return dir!.path;
+  }
+  Future<File> get _localFile async{
+    final path = await _localPath;
+    return File('$path/test2.png');
+  }*/

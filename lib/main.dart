@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:camera/camera.dart';
-import 'dart:math' as math;
 import './camera_page.dart';
 
 void main()  {
