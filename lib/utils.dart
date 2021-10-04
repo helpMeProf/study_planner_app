@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter/foundation.dart';
@@ -6,6 +7,8 @@ import 'package:camera/camera.dart';
 import 'package:google_ml_vision/google_ml_vision.dart';
 import 'package:image/image.dart' as imglib;
 import 'dart:math' as math;
+
+import 'package:path_provider/path_provider.dart';
 ImageRotation rotationIntToImageRotation(int rotation){
   switch(rotation){
     case 0:
@@ -85,12 +88,12 @@ Uint8List grayscaleToByteListFloat32(imglib.Image image){
   }
   return convertedBytes.buffer.asUint8List();
 }
-/*Future<String?> get _localPath async{
+Future<String?> get localPath async{
     final dir = await getExternalStorageDirectory();
     //print(dir.path);
     return dir!.path;
   }
-  Future<File> get _localFile async{
-    final path = await _localPath;
+  Future<File> get localFile async{
+    final path = await localPath;
     return File('$path/test2.png');
-  }*/
+  }

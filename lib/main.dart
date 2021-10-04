@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/b_navi_bar.dart';
 import './camera_page.dart';
 
 void main()  {
@@ -60,6 +61,7 @@ class _MyHomePageState extends State<MyHomePage> {
           ],
         ),
       ),
+      bottomNavigationBar: BtnNaviBar(),
     );
   }
 }

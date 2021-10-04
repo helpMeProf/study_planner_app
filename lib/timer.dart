@@ -72,21 +72,26 @@ class TimerWidgetState extends State<TimerWidget> {
         ImageRotation rotation = rotationIntToImageRotation(widget.camera.sensorOrientation);
         var metadata = buildMetaData(image,rotation);
         var unit8list = planesToUnit8(image.planes);
+
         try {
           final GoogleVisionImage visionImage = GoogleVisionImage
               .fromBytes(unit8list, metadata);
           widget.faceDetector.processImage(visionImage).then((List<Face> result) {
             _isDetecting = false;
             if(result.isEmpty) {print("not found"); return null;}
-            print(result[0].getContour(FaceContourType.leftEye)?.positionsList.toString());
+            //print(result[0].getContour(FaceContourType.leftEye)?.positionsList.toString());
+
 
             List<Offset>? leftEyesPosition = result[0].getContour(FaceContourType.leftEye)?.positionsList;
             List<Offset>? rightEyesPosition = result[0].getContour(FaceContourType.rightEye)?.positionsList;
 
-            imglib.Image img = convertYUV420(image);
 
-            imglib.Image left_eyes = imglib.copyResize(crop_eye(img, leftEyesPosition!),width: 34,height: 26);
-            imglib.Image right_eyes = imglib.copyResize(crop_eye(img,rightEyesPosition!),width: 34,height: 26);
+
+            imglib.Image img =imglib.Image.fromBytes(image.width, image.height, image.planes[0].bytes,format : imglib.Format.luminance);
+
+
+            imglib.Image left_eyes = imglib.copyResize(crop_eye(img, leftEyesPosition!),width: 34,height: 26,interpolation: imglib.Interpolation.average);
+            imglib.Image right_eyes = imglib.copyResize(crop_eye(img,rightEyesPosition!),width: 34,height: 26,interpolation: imglib.Interpolation.average);
 
             var left_eye_gray = grayscaleToByteListFloat32(left_eyes);
             var right_eye_gray = grayscaleToByteListFloat32(right_eyes);
@@ -101,7 +106,10 @@ class TimerWidgetState extends State<TimerWidget> {
             var right_open = right_eye_output[0][0];
             print(left_open);
             print(right_open);
+            //print(result[0].leftEyeOpenProbability);
+            //print(result[0].rightEyeOpenProbability);
             print(_closedCount);
+
             //0.4~0.5초당 1번 검사 하고 10초에 28번
             //넉넉 잡아 10초동안 눈을 뜨지 않았을 경우는 30번 카운팅
 
