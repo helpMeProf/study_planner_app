@@ -22,7 +22,6 @@ class TimerWidget extends StatefulWidget {
 class TimerWidgetState extends State<TimerWidget> {
   @override
   void dispose(){
-    print("hh");
     super.dispose();
   }
 
@@ -33,7 +32,8 @@ class TimerWidgetState extends State<TimerWidget> {
 
   bool _isDetecting = false;
   int _closedCount = 0;
-  
+  int _eyeTimeStart =0;
+  int _notFoundStart =0;
   void click(){
     _isPlaying = !_isPlaying;
     if(_isPlaying){
@@ -57,6 +57,28 @@ class TimerWidgetState extends State<TimerWidget> {
     _timer.cancel();
     setState(() {});
   }
+  detected(){
+    stopDetecting();
+    _icon = Icons.play_arrow;
+    _timer.cancel();
+    setState(() {});
+    showDialog(
+        context: context,
+        builder: (context){
+          return AlertDialog(
+            title: Text("알림"),
+            content : Text("졸음을 감지했습니다! 확인을 눌러주세요"),
+            actions: [
+              TextButton(
+                child: Text("확인"),
+                onPressed: (){
+                  Navigator.pop(context);
+                },
+              )
+            ],
+          );
+        } );
+  }
   stopDetecting(){
     if(widget.controller.value.isStreamingImages) {
       widget.controller.stopImageStream();
@@ -65,7 +87,8 @@ class TimerWidgetState extends State<TimerWidget> {
   startDetecting() {
 
     if(widget.controller.value.isStreamingImages) return;
-    _closedCount=0;
+    _notFoundStart = _time;
+    _eyeTimeStart =_time;
     widget.controller.startImageStream((image) {
       if(!_isDetecting){
         _isDetecting = true;
@@ -78,10 +101,16 @@ class TimerWidgetState extends State<TimerWidget> {
               .fromBytes(unit8list, metadata);
           widget.faceDetector.processImage(visionImage).then((List<Face> result) {
             _isDetecting = false;
-            if(result.isEmpty) {print("not found"); return null;}
-            //print(result[0].getContour(FaceContourType.leftEye)?.positionsList.toString());
-
-
+            if(result.isEmpty) {
+              //print(_time);
+              //print(_notFoundStart);
+              if(_time - _notFoundStart >=10){
+                detected();
+              }
+              print("not found");
+              return;
+            }
+            _notFoundStart = _time;
             List<Offset>? leftEyesPosition = result[0].getContour(FaceContourType.leftEye)?.positionsList;
             List<Offset>? rightEyesPosition = result[0].getContour(FaceContourType.rightEye)?.positionsList;
 
@@ -90,8 +119,8 @@ class TimerWidgetState extends State<TimerWidget> {
             imglib.Image img =imglib.Image.fromBytes(image.width, image.height, image.planes[0].bytes,format : imglib.Format.luminance);
 
 
-            imglib.Image left_eyes = imglib.copyResize(crop_eye(img, leftEyesPosition!),width: 34,height: 26,interpolation: imglib.Interpolation.average);
-            imglib.Image right_eyes = imglib.copyResize(crop_eye(img,rightEyesPosition!),width: 34,height: 26,interpolation: imglib.Interpolation.average);
+            imglib.Image left_eyes = imglib.copyResize(crop_eye(img, leftEyesPosition!),width: 34,height: 26);
+            imglib.Image right_eyes = imglib.copyResize(crop_eye(img,rightEyesPosition!),width: 34,height: 26);
 
             var left_eye_gray = grayscaleToByteListFloat32(left_eyes);
             var right_eye_gray = grayscaleToByteListFloat32(right_eyes);
@@ -114,15 +143,15 @@ class TimerWidgetState extends State<TimerWidget> {
             //넉넉 잡아 10초동안 눈을 뜨지 않았을 경우는 30번 카운팅
 
             if(left_open<0.4&&right_open<0.4){
-              _closedCount++;
-            }else {
-              _closedCount=0;
-            }
-            if(_closedCount>=30){
-              if(widget.controller.value.isStreamingImages) {
-                widget.controller.stopImageStream();
+              //print(_time);
+              //print(_eyeTimeStart);
+              if(_time-_eyeTimeStart>=10){
+                detected();
               }
+            }else {
+              _eyeTimeStart = _time;
             }
+
           });
         }catch(e){
           print("error발생");

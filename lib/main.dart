@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_app/b_navi_bar.dart';
 import './camera_page.dart';
 
@@ -36,8 +37,6 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
 
-
-
   @override
   Widget build(BuildContext context) {
 
@@ -45,23 +44,8 @@ class _MyHomePageState extends State<MyHomePage> {
       appBar: AppBar(
         title: Text("test"),
       ),
-      body: Center(
-        child: Column(
-          children: [
-            Container(
-              width: 200,
-              height: 200,
-              child : TextButton(
-                onPressed: (){
-                  Navigator.push(context,MaterialPageRoute(builder: (context)=>Camera()));
-                },
-                child: Text("next"),
-              )
-            )
-          ],
-        ),
-      ),
-      bottomNavigationBar: BtnNaviBar(),
+      body: BtnNaviBar(),
+
     );
   }
 }

@@ -36,17 +36,13 @@ class _CameraState extends State<Camera>{
   Future<void> _initializeCamera() async {
     var cameras = await availableCameras();
     camera = cameras.length>=2?cameras[1]:cameras.first;
-    controller = CameraController(camera, ResolutionPreset.ultraHigh);
+    controller = CameraController(camera, ResolutionPreset.high);
     interpreter = await Interpreter.fromAsset("final_model.tflite");
     await controller.initialize();
   }
   @override
   void dispose(){
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.portraitUp,
-      DeviceOrientation.portraitDown,
-    ]
-    );
+
     controller.dispose();
     super.dispose();
   }
@@ -54,10 +50,7 @@ class _CameraState extends State<Camera>{
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
-    SystemChrome.setPreferredOrientations([
-      DeviceOrientation.landscapeLeft,
-      DeviceOrientation.landscapeRight
-    ]);
+
     return Scaffold(
         body : FutureBuilder<void>(
          future: _initializeCamera(),
@@ -92,12 +85,6 @@ class _CameraState extends State<Camera>{
            }
          },
         ),
-      floatingActionButton: FloatingActionButton(
-        onPressed:() {
-
-        },
-        child: Icon(Icons.play_arrow),
-      ),
     );
 
   }
