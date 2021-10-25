@@ -36,7 +36,7 @@ class _CameraState extends State<Camera>{
   Future<void> _initializeCamera() async {
     var cameras = await availableCameras();
     camera = cameras.length>=2?cameras[1]:cameras.first;
-    controller = CameraController(camera, ResolutionPreset.high);
+    controller = CameraController(camera, ResolutionPreset.low);
     interpreter = await Interpreter.fromAsset("final_model.tflite");
     await controller.initialize();
   }
@@ -64,6 +64,8 @@ class _CameraState extends State<Camera>{
                    child: Column(
                      children: [
                        SizedBox(
+                         width: 400,
+                         height: 250,
                          child: AspectRatio(
                              aspectRatio: controller.value.aspectRatio,
                              child: CameraPreview(controller),
