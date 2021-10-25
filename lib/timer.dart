@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:audioplayers/audioplayers.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_app/utils.dart';
@@ -11,6 +12,7 @@ class TimerWidget extends StatefulWidget {
   final CameraDescription camera;
   final Interpreter interpreter;
   final FaceDetector faceDetector;
+
   const TimerWidget({Key? key, required this.controller, required this.camera, required this.interpreter, required this.faceDetector}) : super(key: key);
 
 
@@ -20,6 +22,8 @@ class TimerWidget extends StatefulWidget {
 }
 
 class TimerWidgetState extends State<TimerWidget> {
+  AudioCache cache= AudioCache();
+  late AudioPlayer player;
   @override
   void dispose(){
     super.dispose();
@@ -31,7 +35,6 @@ class TimerWidgetState extends State<TimerWidget> {
   bool _isPlaying = false;
 
   bool _isDetecting = false;
-  int _closedCount = 0;
   int _eyeTimeStart =0;
   int _notFoundStart =0;
   void click(){
@@ -62,6 +65,7 @@ class TimerWidgetState extends State<TimerWidget> {
     _icon = Icons.play_arrow;
     _timer.cancel();
     setState(() {});
+    _playFile();
     showDialog(
         context: context,
         builder: (context){
@@ -73,11 +77,19 @@ class TimerWidgetState extends State<TimerWidget> {
                 child: Text("확인"),
                 onPressed: (){
                   Navigator.pop(context);
+                  _stopFile();
                 },
               )
             ],
           );
         } );
+
+  }
+  _playFile() async{
+    player= await cache.loop('alarm_sound.mp3');
+  }
+  _stopFile(){
+    player?.stop();
   }
   stopDetecting(){
     if(widget.controller.value.isStreamingImages) {
@@ -137,15 +149,10 @@ class TimerWidgetState extends State<TimerWidget> {
             print(right_open);
             //print(result[0].leftEyeOpenProbability);
             //print(result[0].rightEyeOpenProbability);
-            print(_closedCount);
-
-            //0.4~0.5초당 1번 검사 하고 10초에 28번
-            //넉넉 잡아 10초동안 눈을 뜨지 않았을 경우는 30번 카운팅
-
-            if(left_open<0.4&&right_open<0.4){
-              //print(_time);
-              //print(_eyeTimeStart);
-              if(_time-_eyeTimeStart>=10){
+            if(left_open<0.3&&right_open<0.3){
+              print('현재 시각 : ${_time}');
+              print('눈 감기 시작한 시작 : ${_eyeTimeStart}');
+              if(_time-_eyeTimeStart>=5){
                 detected();
               }
             }else {
@@ -154,7 +161,7 @@ class TimerWidgetState extends State<TimerWidget> {
 
           });
         }catch(e){
-          print("error발생");
+          //print("error발생");
         }
 
       }
@@ -182,14 +189,14 @@ class TimerWidgetState extends State<TimerWidget> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children : [
                 IconButton(
-                  padding: EdgeInsets.all(10),
+                  padding: EdgeInsets.all(30),
                   onPressed: () {
                     click();
                   },
                   icon: Icon(_icon,size: 50,),
                 ),
                 IconButton(
-                  padding: EdgeInsets.all(10),
+                  padding: EdgeInsets.all(30),
                   onPressed: (){
                     Navigator.of(context).pop();
                   },
