@@ -12,8 +12,9 @@ class TimerWidget extends StatefulWidget {
   final CameraDescription camera;
   final Interpreter interpreter;
   final FaceDetector faceDetector;
+  final String subjectName;
 
-  const TimerWidget({Key? key, required this.controller, required this.camera, required this.interpreter, required this.faceDetector}) : super(key: key);
+  const TimerWidget({Key? key, required this.controller, required this.camera, required this.interpreter, required this.faceDetector,required this.subjectName}) : super(key: key);
 
 
   @override
@@ -24,13 +25,14 @@ class TimerWidget extends StatefulWidget {
 class TimerWidgetState extends State<TimerWidget> {
   AudioCache cache= AudioCache();
   late AudioPlayer player;
-  late Timer tempTimer;
+
   late Timer _timer;
+  bool isTimerInit = false;
   var _time=0;
   var _icon = Icons.play_arrow;
   bool _isPlaying = false;
   bool _isDetecting = false;
-  bool _isPrepared =false;
+  int _selectedWidget =0;
   bool _isSleep = false;
   int _eyeTimeStart =0;
   int _notFoundStart =0;
@@ -65,25 +67,9 @@ class TimerWidgetState extends State<TimerWidget> {
     _timer.cancel();
     setState(() {});
     _playFile();
-    showDialog(
-        context: context,
-        builder: (context){
-          return WillPopScope(
-              child: AlertDialog(
-                title: Text("알림"),
-                content : Text("졸음을 감지했습니다! 확인을 눌러주세요"),
-                actions: [
-                TextButton(
-                  child: Text("확인"),
-                  onPressed: (){
-                  Navigator.pop(context);
-                  _stopFile();
-                  },
-                )
-              ],
-            ),
-            onWillPop: () async {return false;},
-          );
+    _makeDialog("알림", "졸음을 감지했습니다! 확인을 눌러주세요", (context) {
+      Navigator.pop(context);
+      _stopFile();
     });
   }
   _playFile() async{
@@ -162,56 +148,88 @@ class TimerWidgetState extends State<TimerWidget> {
 
     });
   }
+  _makeDialog(title,content,callback){
+    showDialog(
+        context: context,
+        builder: (context){
+          return  AlertDialog(
+            title: Text(title),
+            content : Text(content),
+            actions: [
+              TextButton(
+                child: Text("확인"),
+                onPressed: (){
+                  callback(context);
+                },
+              )
+            ],
+          );
+        }
+    );
+  }
+  Widget _beforeStartDetecting(){
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+            padding: EdgeInsets.all(20),
+            alignment: Alignment.center,
+            child: Text("얼굴을 인식하는 중입니다. 얼굴이 잘 인식되는 곳에 카메라를 고정시켜주세요.")
+        ),
+        OutlinedButton(
+            onPressed: (){
+              _timer.cancel();
+              stopDetecting();
+              setState((){
+                _selectedWidget = 0;
+              });
+            },
+            child:Text("취소하기")
+        )
+      ],
+    );
+  }
   Widget _beforeStart(){
-    return Center(
-      child:Column(
-
+    return Container(
+      color: Colors.white,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+
           Container(
             padding: EdgeInsets.all(20),
+            alignment: Alignment.center,
             child: Text("카메라를 적당한 위치에 두어 5초 동안 얼굴이 감지가 되도록 해주세요."),
           ),
           OutlinedButton(
             onPressed: (){
+              setState((){_selectedWidget = 1;});
               int tempTime=0;
               int detectingFaceTime=0;
               bool isFaceDetected = false;
-              tempTimer = Timer.periodic(Duration(seconds: 1), (timer) { tempTime++; print("tempTimer activated");});
+              _timer = Timer.periodic(Duration(seconds: 1), (timer) { tempTime++;});
+              isTimerInit = true;
               widget.controller.startImageStream((image) {
                 if(_isDetecting) return;
                 _isDetecting=true;
                 ImageRotation rotation = rotationIntToImageRotation(widget.camera.sensorOrientation);
+                //메타데이터 최적화 할 수 있을 듯
                 var metadata = buildMetaData(image,rotation);
                 var unit8list = planesToUnit8(image.planes);
                 final GoogleVisionImage visionImage = GoogleVisionImage.fromBytes(unit8list, metadata);
                 widget.faceDetector.processImage(visionImage).then((List<Face> result) {
 
                   if(result.isNotEmpty) {
-                    if(tempTime - detectingFaceTime >=3 && isFaceDetected == false){
+                    if(tempTime - detectingFaceTime >=5 && isFaceDetected == false){
                       isFaceDetected = true;
-                      tempTimer.cancel();
-                      if(widget.controller.value.isStreamingImages) {
-                        widget.controller.stopImageStream();
-                      }
-                      _isPrepared=true;
-                      showDialog(
-                          context: context,
-                          builder: (context){
-                            return  AlertDialog(
-                              title: Text("알림"),
-                              content : Text("얼굴을 감지를 완료했습니다. 핸드폰을 움직이지 말아주세요."),
-                              actions: [
-                                TextButton(
-                                  child: Text("확인"),
-                                  onPressed: (){
-                                    Navigator.pop(context);
-                                  },
-                                )
-                              ],
-                            );
-                          }
-                      );
-                      setState((){});
+                      _timer.cancel();
+                      stopDetecting();
+                      _makeDialog("알림","얼굴을 감지를 완료했습니다. 핸드폰을 움직이지 말아주세요.",(context){
+                        Navigator.pop(context);
+                      });
+                      setState((){
+                        _selectedWidget = 2;
+                      });
                     }
                   }else{
                     detectingFaceTime=tempTime;
@@ -221,9 +239,9 @@ class TimerWidgetState extends State<TimerWidget> {
               });
             },
             child: Text("얼굴 찾기 시작"),
-          ),
+          )
         ],
-      )
+      ),
     );
   }
   Widget _body(){
@@ -237,49 +255,62 @@ class TimerWidgetState extends State<TimerWidget> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('$hour',style: TextStyle(fontSize: 80)),
-              Text(':$min',style: TextStyle(fontSize: 80)),
-              Text(':$sec',style: TextStyle(fontSize: 80)),
+              Text('$hour',style: TextStyle(fontSize: 50)),
+              Text(':$min',style: TextStyle(fontSize: 50)),
+              Text(':$sec',style: TextStyle(fontSize: 50)),
             ],
-
           ),
           Row(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.end,
               children : [
-                IconButton(
-                  padding: EdgeInsets.all(30),
+                Flexible(flex: 1,child : IconButton(
+                  padding: EdgeInsets.symmetric(horizontal: 40,vertical: 20),
                   onPressed: () {
                     click();
                   },
                   icon: Icon(_icon,size: 50,),
-                ),
-                IconButton(
-                  padding: EdgeInsets.all(30),
-                  onPressed: (){
-                    Navigator.of(context).pop();
-                  },
-                  icon: Icon(Icons.stop,size: 50)
-                )
+                )),
+                Flexible(flex:1,child:IconButton(
+                    padding:  EdgeInsets.symmetric(horizontal: 40,vertical: 20),
+                    onPressed: (){
+                      Navigator.of(context).pop();
+                    },
+                    icon: Icon(Icons.stop,size: 50)
+                )),
               ]
-          )
+          ),
+          Padding(padding: EdgeInsets.symmetric(vertical: 10)),
+          Text("과목 : ${widget.subjectName}",style: TextStyle(fontSize: 30,overflow: TextOverflow.ellipsis)),
         ],
       ),
 
     );
   }
+  Widget currentWidget(){
+    if(_selectedWidget ==0){
+      return _beforeStart();
+    }
+    if(_selectedWidget ==1){
+      return _beforeStartDetecting();
+    }
+    return _body();
+
+  }
   @override
   Widget build(BuildContext context) {
 
     return Scaffold(
-      body: _isPrepared==false?_beforeStart():_body()
+      body: currentWidget()
     );
   }
   @override
   void dispose(){
-    super.dispose();
+
     //타이머 작동중이면 멈추고
-    _timer?.cancel();
-    tempTimer?.cancel();
+    if(isTimerInit) _timer?.cancel();
+    //tempTimer?.cancel();
+    stopDetecting();
+    super.dispose();
   }
 }

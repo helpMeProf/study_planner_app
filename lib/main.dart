@@ -18,7 +18,7 @@ class MyApp extends StatelessWidget {
       title: 'Flutter Demo',
       theme: ThemeData(
 
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.deepPurple,
       ),
       home: const MyHomePage(title: "hi",),
     );
@@ -41,11 +41,7 @@ class _MyHomePageState extends State<MyHomePage> {
   Widget build(BuildContext context) {
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text("test"),
-      ),
       body: BtnNaviBar(),
-
     );
   }
 }

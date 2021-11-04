@@ -60,7 +60,7 @@ class _TodayStudyListWidgetState extends State<TodayStudyListWidget>{
                                   onPressed: (){
                                     Navigator.push(
                                       context,
-                                      MaterialPageRoute(builder: (context) => Camera()),
+                                      MaterialPageRoute(builder: (context) => Camera(subjectName :snapshot.data![index]['subject'])),
                                     );
                                   },
                                   child: const Text('공부 하기'),

@@ -11,8 +11,8 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 import 'timer.dart';
 
 class Camera extends StatefulWidget{
-
-  const Camera({Key? key}) : super(key : key);
+  final String subjectName;
+  const Camera({required this.subjectName,Key? key}) : super(key : key);
   @override
   _CameraState createState() => _CameraState();
 }
@@ -30,7 +30,7 @@ class _CameraState extends State<Camera>{
   @override
   void initState(){
     super.initState();
-    faceDetector= GoogleVision.instance.faceDetector(FaceDetectorOptions(enableLandmarks: true,enableContours: true, enableClassification: true));
+    faceDetector= GoogleVision.instance.faceDetector(const FaceDetectorOptions(enableLandmarks: true,enableContours: true, enableClassification: true));
   }
 
   Future<void> _initializeCamera() async {
@@ -52,35 +52,63 @@ class _CameraState extends State<Camera>{
     // TODO: implement build
 
     return Scaffold(
+        backgroundColor: Color(0xFFE0E3FC),
         body : FutureBuilder<void>(
          future: _initializeCamera(),
          builder: (context,snapshot) {
            if(snapshot.connectionState == ConnectionState.done){
-             return DraggableScrollableSheet(
-               initialChildSize: 1.0,
-               builder: (context,scrollController){
-                 return SingleChildScrollView(
-                   padding: const EdgeInsets.all(20),
-                   child: Column(
-                     children: [
-                       SizedBox(
-                         width: 400,
-                         height: 250,
-                         child: AspectRatio(
-                             aspectRatio: controller.value.aspectRatio,
-                             child: CameraPreview(controller),
-                             )
+             return Center(
+               child: SingleChildScrollView(
+
+                 child: Column(
+                   mainAxisSize: MainAxisSize.min,
+                   mainAxisAlignment: MainAxisAlignment.center,
+                   crossAxisAlignment: CrossAxisAlignment.center,
+                   children: [
+                     Stack(
+                       children: [
+                         SizedBox(
+                           width: MediaQuery.of(context).size.width*0.8,
+                           height: MediaQuery.of(context).size.height*0.6,
+                           child: Container(
+                             color: Color(0xF0A7AFF7),
+                           ),
+                           ),
+                         SizedBox(
+                           width: MediaQuery.of(context).size.width*0.8,
+                           height: MediaQuery.of(context).size.height*0.6,
+                           child: Card(
+                               color: Colors.white,
+                               child: CameraPreview(controller)
+                           ),
                          ),
-                       SizedBox(
-                           child:AspectRatio(
-                             aspectRatio: controller.value.aspectRatio,
-                             child: TimerWidget(faceDetector: faceDetector,camera: camera,controller: controller,interpreter: interpreter),
-                           )
-                       )
-                     ],
-                   )
-                 );
-               },
+
+                       ],
+                     ),
+                     Padding(padding: EdgeInsets.symmetric(vertical: 1)),
+                     Stack(
+                       children: [
+                         SizedBox(
+                           width: MediaQuery.of(context).size.width*0.8,
+                           height: MediaQuery.of(context).size.height*0.5,
+                           child: Container(
+                             color: Color(0xF0A7AFF7),
+                           ),
+                         ),
+                         SizedBox(
+                           width: MediaQuery.of(context).size.width*0.8,
+                           height: MediaQuery.of(context).size.height*0.5,
+                           child: Card(
+                             child: TimerWidget(faceDetector: faceDetector,camera: camera,controller: controller,interpreter: interpreter,subjectName: widget.subjectName),
+                           ),
+                         ),
+                       ],
+                     )
+
+
+                   ],
+                 ),
+               ),
              );
            }else{
              return Center(child : CircularProgressIndicator());
