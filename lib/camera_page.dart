@@ -17,12 +17,13 @@ class Camera extends StatefulWidget{
   _CameraState createState() => _CameraState();
 }
 
-class _CameraState extends State<Camera>{
+class _CameraState extends State<Camera> with WidgetsBindingObserver{
   late CameraController controller;
   late CameraDescription camera;
   late FaceDetector faceDetector;
-
-  late final interpreter;
+  late Future _initBuilder;
+  late Interpreter interpreter;
+  bool _isInitInterpreter = false;
   int closedCount=0;
   Icon icon = Icon(Icons.play_arrow);
 
@@ -31,30 +32,45 @@ class _CameraState extends State<Camera>{
   void initState(){
     super.initState();
     faceDetector= GoogleVision.instance.faceDetector(const FaceDetectorOptions(enableLandmarks: true,enableContours: true, enableClassification: true));
+    _initBuilder = _initializeCamera();
+    WidgetsBinding.instance?.addObserver(this);
   }
 
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state){
+    if (controller == null || !controller.value.isInitialized) {
+      return;
+    }
+    if (state == AppLifecycleState.inactive) {
+      controller.dispose();
+      print("컨트롤러 해제");
+    } else if (state == AppLifecycleState.resumed) {
+      if (controller != null) {
+        setState((){_initBuilder=_initializeCamera();});
+      }
+    }
+  }
+  @override
+  void dispose(){
+    WidgetsBinding.instance?.removeObserver(this);
+    controller.dispose();
+    super.dispose();
+  }
   Future<void> _initializeCamera() async {
     var cameras = await availableCameras();
     camera = cameras.length>=2?cameras[1]:cameras.first;
     controller = CameraController(camera, ResolutionPreset.low);
-    interpreter = await Interpreter.fromAsset("final_model.tflite");
+    if(!_isInitInterpreter) {interpreter = await Interpreter.fromAsset("final_model.tflite"); _isInitInterpreter = true;}
     await controller.initialize();
   }
-  @override
-  void dispose(){
-
-    controller.dispose();
-    super.dispose();
-  }
-
   @override
   Widget build(BuildContext context) {
     // TODO: implement build
 
     return Scaffold(
-        backgroundColor: Color(0xFFE0E3FC),
+        backgroundColor: const Color(0xFFE0E3FC),
         body : FutureBuilder<void>(
-         future: _initializeCamera(),
+         future: _initBuilder,
          builder: (context,snapshot) {
            if(snapshot.connectionState == ConnectionState.done){
              return Center(
@@ -71,7 +87,7 @@ class _CameraState extends State<Camera>{
                            width: MediaQuery.of(context).size.width*0.8,
                            height: MediaQuery.of(context).size.height*0.6,
                            child: Container(
-                             color: Color(0xF0A7AFF7),
+                             color: const Color(0xF0A7AFF7),
                            ),
                            ),
                          SizedBox(
@@ -85,14 +101,14 @@ class _CameraState extends State<Camera>{
 
                        ],
                      ),
-                     Padding(padding: EdgeInsets.symmetric(vertical: 1)),
+                     const Padding(padding: EdgeInsets.symmetric(vertical: 1)),
                      Stack(
                        children: [
                          SizedBox(
                            width: MediaQuery.of(context).size.width*0.8,
                            height: MediaQuery.of(context).size.height*0.5,
                            child: Container(
-                             color: Color(0xF0A7AFF7),
+                             color: const Color(0xF0A7AFF7),
                            ),
                          ),
                          SizedBox(

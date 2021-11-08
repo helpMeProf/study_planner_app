@@ -3,7 +3,9 @@ import 'dart:async';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_app/transport_util.dart';
 import 'package:flutter_app/utils.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:google_ml_vision/google_ml_vision.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 import 'package:image/image.dart' as imglib;
@@ -22,10 +24,9 @@ class TimerWidget extends StatefulWidget {
 
 }
 
-class TimerWidgetState extends State<TimerWidget> {
+class TimerWidgetState extends State<TimerWidget>{
   AudioCache cache= AudioCache();
   late AudioPlayer player;
-
   late Timer _timer;
   bool isTimerInit = false;
   var _time=0;
@@ -78,6 +79,15 @@ class TimerWidgetState extends State<TimerWidget> {
   _stopFile(){
     player?.stop();
   }
+  _saveRecord() async{
+    bool ret = await updateUserData(widget.subjectName,_time);
+    if(ret){
+      Fluttertoast.showToast(msg: "공부시간을 기록했습니다!");
+    }else{
+      Fluttertoast.showToast(msg: "공부시간 기록을 실패했습니다! 인터넷 연결을 확인해주세요.");
+    }
+
+  }
   stopDetecting(){
     if(widget.controller.value.isStreamingImages) {
       widget.controller.stopImageStream();
@@ -99,13 +109,10 @@ class TimerWidgetState extends State<TimerWidget> {
           widget.faceDetector.processImage(visionImage).then((List<Face> result) {
 
             if(result.isEmpty) {
-              //print(_time);
-              //print(_notFoundStart);
               if(_time - _notFoundStart >=10){
                 detected();
               }
               print("not found");
-
             }else{
               _notFoundStart = _time;
               List<Offset>? leftEyesPosition = result[0].getContour(FaceContourType.leftEye)?.positionsList;
@@ -197,9 +204,9 @@ class TimerWidgetState extends State<TimerWidget> {
         children: [
 
           Container(
-            padding: EdgeInsets.all(20),
+            padding: const EdgeInsets.all(20),
             alignment: Alignment.center,
-            child: Text("카메라를 적당한 위치에 두어 5초 동안 얼굴이 감지가 되도록 해주세요."),
+            child: const Text("카메라를 적당한 위치에 두어 5초 동안 얼굴이 감지가 되도록 해주세요."),
           ),
           OutlinedButton(
             onPressed: (){
@@ -207,7 +214,7 @@ class TimerWidgetState extends State<TimerWidget> {
               int tempTime=0;
               int detectingFaceTime=0;
               bool isFaceDetected = false;
-              _timer = Timer.periodic(Duration(seconds: 1), (timer) { tempTime++;});
+              _timer = Timer.periodic(const Duration(seconds: 1), (timer) { tempTime++;});
               isTimerInit = true;
               widget.controller.startImageStream((image) {
                 if(_isDetecting) return;
@@ -238,7 +245,7 @@ class TimerWidgetState extends State<TimerWidget> {
                 });
               });
             },
-            child: Text("얼굴 찾기 시작"),
+            child: const Text("얼굴 찾기 시작"),
           )
         ],
       ),
@@ -255,9 +262,9 @@ class TimerWidgetState extends State<TimerWidget> {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text('$hour',style: TextStyle(fontSize: 50)),
-              Text(':$min',style: TextStyle(fontSize: 50)),
-              Text(':$sec',style: TextStyle(fontSize: 50)),
+              Text('$hour',style: const TextStyle(fontSize: 50)),
+              Text(':$min',style: const TextStyle(fontSize: 50)),
+              Text(':$sec',style: const TextStyle(fontSize: 50)),
             ],
           ),
           Row(
@@ -265,23 +272,23 @@ class TimerWidgetState extends State<TimerWidget> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children : [
                 Flexible(flex: 1,child : IconButton(
-                  padding: EdgeInsets.symmetric(horizontal: 40,vertical: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 40,vertical: 20),
                   onPressed: () {
                     click();
                   },
                   icon: Icon(_icon,size: 50,),
                 )),
                 Flexible(flex:1,child:IconButton(
-                    padding:  EdgeInsets.symmetric(horizontal: 40,vertical: 20),
+                    padding:  const EdgeInsets.symmetric(horizontal: 40,vertical: 20),
                     onPressed: (){
                       Navigator.of(context).pop();
                     },
-                    icon: Icon(Icons.stop,size: 50)
+                    icon: const Icon(Icons.stop,size: 50)
                 )),
               ]
           ),
-          Padding(padding: EdgeInsets.symmetric(vertical: 10)),
-          Text("과목 : ${widget.subjectName}",style: TextStyle(fontSize: 30,overflow: TextOverflow.ellipsis)),
+          Padding(padding: const EdgeInsets.symmetric(vertical: 10)),
+          Text("과목 : ${widget.subjectName}",style: const TextStyle(fontSize: 30,overflow: TextOverflow.ellipsis)),
         ],
       ),
 
@@ -299,18 +306,22 @@ class TimerWidgetState extends State<TimerWidget> {
   }
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: currentWidget()
     );
   }
   @override
-  void dispose(){
+  void initState(){
+    super.initState();
+    print("timer 초기화");
 
-    //타이머 작동중이면 멈추고
+  }
+
+  @override
+  void dispose(){
+    print("timer dispose");
     if(isTimerInit) _timer?.cancel();
-    //tempTimer?.cancel();
-    stopDetecting();
+    //_saveRecord();
     super.dispose();
   }
 }

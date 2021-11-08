@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_app/b_navi_bar.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import './camera_page.dart';
 
 void main()  {
@@ -36,9 +37,20 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-
+  @override
+  void initState(){
+    super.initState();
+    _loadUserData();
+  }
+  _loadUserData() async{
+    var pref = await SharedPreferences.getInstance();
+    if(!pref.containsKey("uid")){
+      pref.setInt("uid", 1);
+    }
+  }
   @override
   Widget build(BuildContext context) {
+
 
     return Scaffold(
       body: BtnNaviBar(),
