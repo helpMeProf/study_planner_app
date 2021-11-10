@@ -41,7 +41,7 @@ class _TodayStudyListWidgetState extends State<TodayStudyListWidget>{
         children: [
           Column(
             children: [
-              Text('오늘의 공부 목록',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold)),
+              //Text('오늘의 공부 목록',style: TextStyle(fontSize: 20,fontWeight: FontWeight.bold)),
               Container(
                 padding: EdgeInsets.all(20),
                 width: 300,

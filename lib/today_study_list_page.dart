@@ -14,7 +14,13 @@ class TodayStudyListPage extends StatefulWidget{
 class _TodayStudyListPageState extends State<TodayStudyListPage>{
   @override
   Widget build(context) {
-    return TodayStudyListWidget();
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("오늘의 공부 목록"),
+        centerTitle: true,
+      ),
+      body: TodayStudyListWidget(),
+    );
   }
 
 }

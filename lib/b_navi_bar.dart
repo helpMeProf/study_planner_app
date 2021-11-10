@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/study_record_page.dart';
 import 'package:flutter_app/today_study_list_page.dart';
 
 class BtnNaviBar extends StatefulWidget {
@@ -13,7 +14,7 @@ class BtnNaviBar extends StatefulWidget {
 class _BtnNaviBarState extends State<BtnNaviBar>{
   int _selectedIndex = 0;
   final List<Widget> _widgetOptions=[
-    const Placeholder(),
+    const StudyRecordPage(),
     const TodayStudyListPage()
   ];
   @override
