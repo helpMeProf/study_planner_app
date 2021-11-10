@@ -49,7 +49,6 @@ Future<bool> sendUserData(String subject) async{
     if(pref.containsKey("uid")){
       uid = pref.getInt("uid") ?? 1;
     }
-    print(subject);
     String apiURL = "http://3.38.125.145:3000/api/users/${uid}/records/${currentTime}";
     //String apiURL = "http://3.38.125.145:3000/api/users/1/records/2021-10-21";
     //String apiURL = "http://localhost:3000/api/users/1/records/2021-10-21";
@@ -65,8 +64,29 @@ Future<bool> sendUserData(String subject) async{
     return false;
   }
 }
-void removeUserData(String subject){
+Future<bool> removeUserData(String subject) async{
+  try{
+    DateTime now = DateTime.now().toLocal();
+    var currentTime = DateFormat('yyyy-MM-dd').format(now);
+    var pref = await SharedPreferences.getInstance();
+    int uid = 1;
+    if(pref.containsKey("uid")){
+      uid = pref.getInt("uid") ?? 1;
+    }
+    String apiURL = "http://3.38.125.145:3000/api/users/${uid}/records/${currentTime}";
+    //String apiURL = "http://3.38.125.145:3000/api/users/1/records/2021-10-21";
+    //String apiURL = "http://localhost:3000/api/users/1/records/2021-10-21";
+    var jsonData =jsonEncode({"subject_name": subject});
+    var response = await http.delete(Uri.parse(apiURL),headers: {"Content-Type": "application/json"},body: jsonData);
 
+    var data = jsonDecode(response.body);
+    var state = data['success'];
+    if(state=="FAIL") return false;
+    return true;
+  }catch(err){
+    print(err);
+    return false;
+  }
 }
 Future<bool> updateUserData(String subject, int time) async{
   try{
@@ -77,7 +97,6 @@ Future<bool> updateUserData(String subject, int time) async{
     if(pref.containsKey("uid")){
       uid = pref.getInt("uid") ?? 1;
     }
-    print(subject);
     String apiURL = "http://3.38.125.145:3000/api/users/${uid}/records/${currentTime}";
     //String apiURL = "http://3.38.125.145:3000/api/users/1/records/2021-10-21";
     //String apiURL = "http://localhost:3000/api/users/1/records/2021-10-21";

@@ -29,6 +29,10 @@ class _TodayStudyListWidgetState extends State<TodayStudyListWidget>{
       }
     }
   }
+  Future<bool> removeSubject(String subject) async{
+    bool ret = await removeUserData(subject);
+    return ret;
+  }
   @override
   Widget build(context) {
     // TODO: implement build
@@ -64,25 +68,65 @@ class _TodayStudyListWidgetState extends State<TodayStudyListWidget>{
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: snapshot.data?.length,
                           itemBuilder: (context, index) {
-                            return Card(
-                              margin: const EdgeInsets.symmetric(horizontal: 20,vertical: 5),
-                              shape: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  borderSide: const BorderSide(color: Colors.blueAccent, width: 1)
-                              ),
-                              child: ListTile(
-                                title: Text('${snapshot.data![index]['subject_name']} \t ${snapshot
-                                    .data![index]['study_time']}'),
-                                trailing: OutlinedButton(
-                                  onPressed: (){
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(builder: (context) => Camera(subjectName :snapshot.data![index]['subject_name'])),
-                                    );
-                                  },
-                                  child: const Text('공부 하기'),
+                            return InkWell(
+                              onLongPress:(){
+                                showDialog(
+                                    context: context,
+                                    builder: (context){
+                                      return  WillPopScope(
+                                          child: AlertDialog(
+                                            title: Text("알림"),
+                                            content : Text("해당 과목을 삭제하시겠습니까?"),
+                                            actions: [
+                                              TextButton(
+                                                child: Text("삭제"),
+                                                onPressed: () async {
+                                                  bool success = await removeSubject(snapshot.data![index]['subject_name']);
+                                                  if(success){
+                                                    Fluttertoast.showToast(msg: "과목을 성공적으로 삭제했습니다.");
+                                                  }else{
+                                                    Fluttertoast.showToast(msg: "과목 삭제를 실패했습니다. 다시 시도해주세요");
+                                                  }
+                                                  Navigator.pop(context);
+                                                  setState((){});
+                                                },
+                                              ),
+                                              TextButton(
+                                                child: Text("취소"),
+                                                onPressed: (){
+                                                  Navigator.pop(context);
+                                                },
+                                              )
+                                            ],
+                                          ),
+                                          onWillPop: () async =>false);
+                                    }
+                                );
+                              },
+                              child: Card(
+
+                                margin: const EdgeInsets.symmetric(horizontal: 20,vertical: 5),
+                                shape: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(10),
+                                    borderSide: const BorderSide(color: Colors.blueAccent, width: 1)
                                 ),
 
+                                child: ListTile(
+                                  title: Text('${snapshot.data![index]['subject_name']} \t ${snapshot
+                                      .data![index]['study_time']}'),
+                                  trailing: OutlinedButton(
+                                    onPressed: (){
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (context) => Camera(subjectName :snapshot.data![index]['subject_name'])
+                                        ),
+                                      ).then((value) => setState((){}));
+                                     
+                                    },
+                                    child: const Text('공부 하기'),
+                                  ),
+
+                                ),
                               ),
                             );
                           }

@@ -31,6 +31,8 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver{
   @override
   void initState(){
     super.initState();
+    SystemChrome.setPreferredOrientations(
+        [DeviceOrientation.landscapeRight, DeviceOrientation.landscapeLeft]);
     faceDetector= GoogleVision.instance.faceDetector(const FaceDetectorOptions(enableLandmarks: true,enableContours: true, enableClassification: true));
     _initBuilder = _initializeCamera();
     WidgetsBinding.instance?.addObserver(this);
@@ -43,7 +45,6 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver{
     }
     if (state == AppLifecycleState.inactive) {
       controller.dispose();
-      print("컨트롤러 해제");
     } else if (state == AppLifecycleState.resumed) {
       if (controller != null) {
         setState((){_initBuilder=_initializeCamera();});
@@ -54,6 +55,7 @@ class _CameraState extends State<Camera> with WidgetsBindingObserver{
   void dispose(){
     WidgetsBinding.instance?.removeObserver(this);
     controller.dispose();
+    SystemChrome.setPreferredOrientations(DeviceOrientation.values);
     super.dispose();
   }
   Future<void> _initializeCamera() async {

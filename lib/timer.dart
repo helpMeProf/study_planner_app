@@ -159,18 +159,20 @@ class TimerWidgetState extends State<TimerWidget>{
     showDialog(
         context: context,
         builder: (context){
-          return  AlertDialog(
-            title: Text(title),
-            content : Text(content),
-            actions: [
-              TextButton(
-                child: Text("확인"),
-                onPressed: (){
-                  callback(context);
-                },
-              )
-            ],
-          );
+          return  WillPopScope(
+              child: AlertDialog(
+                title: Text(title),
+                content : Text(content),
+                actions: [
+                  TextButton(
+                    child: Text("확인"),
+                    onPressed: (){
+                      callback(context);
+                    },
+                  )
+                ],
+              ),
+              onWillPop: () async =>false);
         }
     );
   }
@@ -280,14 +282,15 @@ class TimerWidgetState extends State<TimerWidget>{
                 )),
                 Flexible(flex:1,child:IconButton(
                     padding:  const EdgeInsets.symmetric(horizontal: 40,vertical: 20),
-                    onPressed: (){
+                    onPressed: () async{
+                      await _saveRecord();
                       Navigator.of(context).pop();
                     },
-                    icon: const Icon(Icons.stop,size: 50)
+                    icon: const Icon(Icons.bookmark,size: 50)
                 )),
               ]
           ),
-          Padding(padding: const EdgeInsets.symmetric(vertical: 10)),
+          const Padding(padding: EdgeInsets.symmetric(vertical: 10)),
           Text("과목 : ${widget.subjectName}",style: const TextStyle(fontSize: 30,overflow: TextOverflow.ellipsis)),
         ],
       ),
