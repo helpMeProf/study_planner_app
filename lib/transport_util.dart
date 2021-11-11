@@ -3,17 +3,17 @@ import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+
 Future<List<Map<String,dynamic>>> getUserData(String date) async {
 
   try{
-    DateTime now = DateTime.now().toLocal();
-    var currentTime = DateFormat('yyyy-MM-dd').format(now);
+
     var pref = await SharedPreferences.getInstance();
     int uid = 1;
     if(pref.containsKey("uid")){
       uid = pref.getInt("uid") ?? 1;
     }
-    String apiURL = "http://3.38.125.145:3000/api/users/${uid}/records/${currentTime}";
+    String apiURL = "http://3.38.125.145:3000/api/users/${uid}/records/${date}";
     //String apiURL = "http://3.38.125.145:3000/api/users/1/records/2021-10-21";
     //String apiURL = "http://localhost:3000/api/users/1/records/2021-10-21";
     var response = await http.get(Uri.parse(apiURL));

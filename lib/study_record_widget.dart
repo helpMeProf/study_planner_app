@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/transport_util.dart';
+import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 
@@ -53,10 +55,53 @@ class _StudyRecordWidgetState extends State<StudyRecordWidget>{
 
     );
   }
+
+  FutureBuilder _studyListView(){
+    return FutureBuilder<List<Map<String,dynamic>>>(
+        future: getUserData(DateFormat('yyyy-MM-dd').format(_selectedDay)),
+        builder: (context,snapshot){
+          if(snapshot.connectionState == ConnectionState.done){
+            return snapshot.data!.isEmpty ?
+              Column(
+                children: const [
+                  Padding(padding: EdgeInsets.symmetric(vertical: 25)),
+                  Icon(Icons.warning_amber_rounded,size : 50,color: Colors.grey),
+                  Text("불러올 과목이 없습니다. \n혹은 인터넷 연결을 확인해주세요",style: TextStyle(fontSize: 15),)
+                ],
+              )
+                :
+            ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: snapshot.data?.length,
+              itemBuilder: (context,index){
+                return Card(
+                    child : ListTile(
+                      title: Text('${snapshot.data![index]['subject_name']} \t ${snapshot.data![index]['study_time']}'),
+                    )
+                );
+              }
+            );
+          }else if(snapshot.hasError){
+            return Text("오류 발생");
+          }
+          return CircularProgressIndicator();
+        }
+    );
+  }
   Widget build(context) {
     return Scaffold(
       appBar: AppBar(title : const Text("나의 공부 기록"),centerTitle: true),
-      body: _buildCalaendar(),
+      body: Column(
+        children: [
+          _buildCalaendar(),
+          Expanded(
+              child:SingleChildScrollView(
+                child: _studyListView()
+                ),
+              )
+        ],
+      ),
     );
   }
 

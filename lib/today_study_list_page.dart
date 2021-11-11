@@ -19,7 +19,7 @@ class _TodayStudyListPageState extends State<TodayStudyListPage>{
         title: const Text("오늘의 공부 목록"),
         centerTitle: true,
       ),
-      body: TodayStudyListWidget(),
+      body: TodayStudyListWidget()
     );
   }
 
