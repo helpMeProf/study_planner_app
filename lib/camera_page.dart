@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_app/utils.dart';
 import 'package:google_ml_vision/google_ml_vision.dart';
 import 'package:tflite_flutter/tflite_flutter.dart';
 

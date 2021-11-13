@@ -3,12 +3,54 @@ import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
-
+Future<Map<String,dynamic>> login(String id, String password) async {
+  try{
+    String apiURL = "http://3.38.125.145:3000/api/users/login";
+    var jsonData = jsonEncode({
+      "id" : id,
+      "password" : password
+    });
+    var response = await http.post(Uri.parse(apiURL),headers: {"Content-Type": "application/json"},body: jsonData);
+    var data = jsonDecode(response.body);
+    print(data);
+    return data;
+  }catch(err){
+    print(err);
+    return {
+      "success" : "error"
+    };
+  }
+}
+Future<int> signup(String id, String password, String name) async{
+  try{
+    String apiURL = "http://3.38.125.145:3000/api/users/signup";
+    var jsonData = {
+      "id" : id,
+      "password" : password,
+      "name" : name
+    };
+    var response = await http.post(Uri.parse(apiURL),headers: {"Content-Type": "application/json"},body: jsonData);
+    var data = jsonDecode(response.body);
+    var success = data['success'];
+    if(success=="FAIL"){
+      return 0;
+    }else if(success == "error"){
+      return -1;
+    }
+    else{
+      return 1;
+    }
+  }catch(err){
+    print(err);
+    return -1;
+  }
+}
 Future<List<Map<String,dynamic>>> getUserData(String date) async {
 
   try{
 
     var pref = await SharedPreferences.getInstance();
+    String? jwtToken = pref.getString("jwtToken");
     int uid = 1;
     if(pref.containsKey("uid")){
       uid = pref.getInt("uid") ?? 1;
@@ -16,7 +58,7 @@ Future<List<Map<String,dynamic>>> getUserData(String date) async {
     String apiURL = "http://3.38.125.145:3000/api/users/${uid}/records/${date}";
     //String apiURL = "http://3.38.125.145:3000/api/users/1/records/2021-10-21";
     //String apiURL = "http://localhost:3000/api/users/1/records/2021-10-21";
-    var response = await http.get(Uri.parse(apiURL));
+    var response = await http.get(Uri.parse(apiURL),headers: {"x-access-token":jwtToken!});
     var data = jsonDecode(response.body);
     List user_data = data["user_data"];
     List<Map<String,dynamic>> userData = [];
@@ -45,6 +87,7 @@ Future<bool> sendUserData(String subject) async{
     DateTime now = DateTime.now().toLocal();
     var currentTime = DateFormat('yyyy-MM-dd').format(now);
     var pref = await SharedPreferences.getInstance();
+    String? jwtToken = pref.getString("jwtToken");
     int uid = 1;
     if(pref.containsKey("uid")){
       uid = pref.getInt("uid") ?? 1;
@@ -53,7 +96,7 @@ Future<bool> sendUserData(String subject) async{
     //String apiURL = "http://3.38.125.145:3000/api/users/1/records/2021-10-21";
     //String apiURL = "http://localhost:3000/api/users/1/records/2021-10-21";
     var jsonData =jsonEncode({"subject_name": subject});
-    var response = await http.post(Uri.parse(apiURL),headers: {"Content-Type": "application/json"},body: jsonData);
+    var response = await http.post(Uri.parse(apiURL),headers: {"Content-Type": "application/json","x-access-token":jwtToken!},body: jsonData);
 
     var data = jsonDecode(response.body);
     var state = data['success'];
@@ -69,6 +112,7 @@ Future<bool> removeUserData(String subject) async{
     DateTime now = DateTime.now().toLocal();
     var currentTime = DateFormat('yyyy-MM-dd').format(now);
     var pref = await SharedPreferences.getInstance();
+    String? jwtToken = pref.getString("jwtToken");
     int uid = 1;
     if(pref.containsKey("uid")){
       uid = pref.getInt("uid") ?? 1;
@@ -77,7 +121,7 @@ Future<bool> removeUserData(String subject) async{
     //String apiURL = "http://3.38.125.145:3000/api/users/1/records/2021-10-21";
     //String apiURL = "http://localhost:3000/api/users/1/records/2021-10-21";
     var jsonData =jsonEncode({"subject_name": subject});
-    var response = await http.delete(Uri.parse(apiURL),headers: {"Content-Type": "application/json"},body: jsonData);
+    var response = await http.delete(Uri.parse(apiURL),headers: {"Content-Type": "application/json","x-access-token":jwtToken!},body: jsonData);
 
     var data = jsonDecode(response.body);
     var state = data['success'];
@@ -93,6 +137,7 @@ Future<bool> updateUserData(String subject, int time) async{
     DateTime now = DateTime.now().toLocal();
     var currentTime = DateFormat('yyyy-MM-dd').format(now);
     var pref = await SharedPreferences.getInstance();
+    String? jwtToken = pref.getString("jwtToken");
     int uid = 1;
     if(pref.containsKey("uid")){
       uid = pref.getInt("uid") ?? 1;
@@ -101,7 +146,7 @@ Future<bool> updateUserData(String subject, int time) async{
     //String apiURL = "http://3.38.125.145:3000/api/users/1/records/2021-10-21";
     //String apiURL = "http://localhost:3000/api/users/1/records/2021-10-21";
     var jsonData =jsonEncode({"subject_name": subject,"study_time": time});
-    var response = await http.put(Uri.parse(apiURL),headers: {"Content-Type": "application/json"},body: jsonData);
+    var response = await http.put(Uri.parse(apiURL),headers: {"Content-Type": "application/json","x-access-token":jwtToken!},body: jsonData);
 
     var data = jsonDecode(response.body);
     var state = data['success'];

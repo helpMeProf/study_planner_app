@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_app/b_navi_bar.dart';
+import 'package:flutter_app/login/login_page.dart';
+
 import 'package:shared_preferences/shared_preferences.dart';
-import './camera_page.dart';
+
 
 void main()  {
 
@@ -53,7 +53,8 @@ class _MyHomePageState extends State<MyHomePage> {
 
 
     return Scaffold(
-      body: BtnNaviBar(),
+      //body: BtnNaviBar(),
+      body: LoginPage(),
     );
   }
 }
