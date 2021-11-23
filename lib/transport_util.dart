@@ -3,6 +3,18 @@ import 'package:flutter/cupertino.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+Future<bool> tokenCheck(String jwt) async{
+  try {
+    String apiURL = "http://3.38.125.145:3000/api/tokenCheck";
+    var response = await http.get(Uri.parse(apiURL),headers: {"x-access-token":jwt});
+    var data = jsonDecode(response.body);
+    if(data['success']=="FAIL" || data['success']=="NOTVALID") return false;
+    return true;
+  }catch(err){
+    print(err);
+    return false;
+  }
+}
 Future<Map<String,dynamic>> login(String id, String password) async {
   try{
     String apiURL = "http://3.38.125.145:3000/api/users/login";
@@ -24,13 +36,14 @@ Future<Map<String,dynamic>> login(String id, String password) async {
 Future<int> signup(String id, String password, String name) async{
   try{
     String apiURL = "http://3.38.125.145:3000/api/users/signup";
-    var jsonData = {
+    var jsonData = jsonEncode({
       "id" : id,
       "password" : password,
       "name" : name
-    };
+    });
     var response = await http.post(Uri.parse(apiURL),headers: {"Content-Type": "application/json"},body: jsonData);
     var data = jsonDecode(response.body);
+    print(data);
     var success = data['success'];
     if(success=="FAIL"){
       return 0;

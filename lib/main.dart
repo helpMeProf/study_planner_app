@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_app/b_navi_bar.dart';
 import 'package:flutter_app/login/login_page.dart';
+import 'package:flutter_app/transport_util.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -40,13 +42,16 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState(){
     super.initState();
-    _loadUserData();
   }
-  _loadUserData() async{
+  Future<bool> _loadUserData() async{
     var pref = await SharedPreferences.getInstance();
-    if(!pref.containsKey("uid")){
-      pref.setInt("uid", 1);
+    if(pref.containsKey("id") && pref.containsKey("jwtToken")){
+      var token = pref.getString("jwtToken");
+      bool ret = await tokenCheck(token!);
+      if(ret==false) return false;
+      return true;
     }
+    return false;
   }
   @override
   Widget build(BuildContext context) {
@@ -54,7 +59,18 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return Scaffold(
       //body: BtnNaviBar(),
-      body: LoginPage(),
+      body: FutureBuilder<bool>(
+        future: _loadUserData(),
+        builder: (context,snapshot){
+          if(snapshot.connectionState == ConnectionState.done){
+            return snapshot!.data==true ? BtnNaviBar(
+
+            ):LoginPage();
+          }else{
+            return const CircularProgressIndicator();
+          }
+        },
+      ),
     );
   }
 }

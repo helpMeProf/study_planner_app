@@ -76,6 +76,7 @@ flutter:
     - asset/model/final_model.tflite
     - asset/model/final_model_label.txt
     - assets/alarm_sound.mp3
+    - assets/avaterImage.png
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg
 

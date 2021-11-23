@@ -20,11 +20,9 @@ class _LoginWidgetState extends State<LoginWidget> {
         width: double.infinity,
         decoration: const BoxDecoration(
             gradient: LinearGradient(begin: Alignment.topCenter, colors: [
-              Color(0xFFE46AF8),
-              Color(0xFFE889F6),
-              Color(0xFFE392F3),
-              Color(0xFFE5B9EE),
-              Color(0xFFF3BBF6),
+              Color(0xFFE4CAF6),
+              Color(0xFFF1E3F6),
+              Color(0xFFF1E7FA)
             ])
         ),
         child :SingleChildScrollView(

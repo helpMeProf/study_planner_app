@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 class SignUpInputField extends StatefulWidget{
-  const SignUpInputField({Key? key}) : super(key: key);
+  final TextEditingController idController;
+  final TextEditingController passwordController;
+  final TextEditingController nameController;
+  const SignUpInputField({Key? key, required this.idController, required this.passwordController, required this.nameController}) : super(key: key);
 
   @override
   State<StatefulWidget> createState() => _SignUpInputFieldState();
@@ -8,6 +11,9 @@ class SignUpInputField extends StatefulWidget{
 }
 class _SignUpInputFieldState extends State<SignUpInputField>{
   bool _isObscure = true;
+
+
+
   @override
   Widget build(context) {
     // TODO: implement build
@@ -20,8 +26,9 @@ class _SignUpInputFieldState extends State<SignUpInputField>{
                 bottom: BorderSide(color: Colors.grey)
             ),
           ),
-          child: const TextField(
-            decoration: InputDecoration(
+          child: TextField(
+            controller: widget.idController,
+            decoration: const InputDecoration(
                 labelText: "ID",
                 hintText: "아이디를 입력하세요",
                 hintStyle: TextStyle(color: Colors.grey),
@@ -38,6 +45,7 @@ class _SignUpInputFieldState extends State<SignUpInputField>{
             ),
           ),
           child: TextField(
+            controller: widget.passwordController,
             obscureText: _isObscure,
             decoration: InputDecoration(
                 labelText: "Password",
@@ -63,8 +71,9 @@ class _SignUpInputFieldState extends State<SignUpInputField>{
                 bottom: BorderSide(color: Colors.grey)
             ),
           ),
-          child: const TextField(
-            decoration: InputDecoration(
+          child: TextField(
+            controller: widget.nameController,
+            decoration: const InputDecoration(
                 labelText: "Name",
                 hintText: "이름을 입력하세요",
                 hintStyle: TextStyle(color: Colors.grey),

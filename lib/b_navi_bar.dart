@@ -3,6 +3,7 @@ import 'package:flutter_app/study_record_page.dart';
 import 'package:flutter_app/today_study_list_page.dart';
 
 class BtnNaviBar extends StatefulWidget {
+
   const BtnNaviBar({Key? key}) : super(key: key);
 
   @override

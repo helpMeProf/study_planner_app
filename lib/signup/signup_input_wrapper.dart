@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_app/login/login_button.dart';
+import 'package:flutter_app/signup/signup_button.dart';
 import 'package:flutter_app/signup/signup_input_field.dart';
 
 
 class SignUpInputWrapper extends StatelessWidget{
   late String id;
+  TextEditingController idController= TextEditingController();
+  TextEditingController passwordController= TextEditingController();
+  TextEditingController nameController= TextEditingController();
   @override
   Widget build(context){
     return Padding(
@@ -17,25 +21,10 @@ class SignUpInputWrapper extends StatelessWidget{
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(10)
             ),
-            child: SignUpInputField(),
+            child: SignUpInputField(idController: idController,passwordController: passwordController,nameController: nameController),
           ),
           const SizedBox(height: 40,),
-          TextButton(
-              onPressed: (){},
-              child: Container(
-                height: 50,
-                margin: EdgeInsets.symmetric(horizontal: 50),
-                decoration: BoxDecoration(
-                  color: Colors.purple,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Center(
-                  child: Text("회원가입",style: TextStyle(color: Colors.white,fontSize: 15,fontWeight:FontWeight.bold ),),
-                ),
-              )
-          ),
-          const SizedBox(height: 40,),
-          //LoginButton()
+          SignUpButton(idController: idController, passwordController: passwordController, nameController: nameController)
         ],
       ),
     );
