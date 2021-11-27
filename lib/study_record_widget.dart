@@ -32,7 +32,7 @@ class _StudyRecordWidgetState extends State<StudyRecordWidget>{
   @override
   Widget _buildCalaendar(){
     return TableCalendar(
-        focusedDay: DateTime.now(),
+        focusedDay: _focusedDay ,
         firstDay: DateTime(2020),
         lastDay: DateTime(2030),
       headerStyle:const HeaderStyle(

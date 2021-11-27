@@ -99,14 +99,55 @@ class TimerWidgetState extends State<TimerWidget>{
     if(widget.controller.value.isStreamingImages) return;
     _notFoundStart = _time;
     _eyeTimeStart =_time;
-    widget.controller.startImageStream((image) {
+    widget.controller.startImageStream((image) async {
       if(!_isDetecting){
         _isDetecting = true;
         ImageRotation rotation = rotationIntToImageRotation(widget.camera.sensorOrientation);
         var metadata = buildMetaData(image,rotation);
         var unit8list = planesToUnit8(image.planes);
         final GoogleVisionImage visionImage = GoogleVisionImage.fromBytes(unit8list, metadata);
-          widget.faceDetector.processImage(visionImage).then((List<Face> result) {
+        List<Face> result = await widget.faceDetector.processImage(visionImage);
+        if(result.isEmpty) {
+          if(_time - _notFoundStart >=10){
+            detected();
+          }
+          //print("not found");
+        }else{
+          _notFoundStart = _time;
+          List<Offset>? leftEyesPosition = result[0].getContour(FaceContourType.leftEye)?.positionsList;
+          List<Offset>? rightEyesPosition = result[0].getContour(FaceContourType.rightEye)?.positionsList;
+
+          imglib.Image img =imglib.Image.fromBytes(image.width, image.height, image.planes[0].bytes,format : imglib.Format.luminance);
+
+          imglib.Image left_eyes = imglib.copyResize(crop_eye(img, leftEyesPosition!),width: 34,height: 26);
+          imglib.Image right_eyes = imglib.copyResize(crop_eye(img,rightEyesPosition!),width: 34,height: 26);
+          var left_eye_gray = grayscaleToByteListFloat32(left_eyes);
+          var right_eye_gray = grayscaleToByteListFloat32(right_eyes);
+
+          var left_eye_output = List.filled(1,0).reshape([1,1]);
+          var right_eye_output = List.filled(1,0).reshape([1,1]);
+
+          widget.interpreter.run(left_eye_gray,left_eye_output);
+          widget.interpreter.run(right_eye_gray,right_eye_output);
+
+          var left_open = left_eye_output[0][0];
+          var right_open = right_eye_output[0][0];
+          //print(left_open);
+          //print(right_open);
+          //print(result[0].leftEyeOpenProbability);
+          //print(result[0].rightEyeOpenProbability);
+
+          if(left_open<0.3&&right_open<0.3){
+            //print('현재 시각 : ${_time}');
+            //print('눈 감기 시작한 시작 : ${_eyeTimeStart}');
+            if(_time-_eyeTimeStart>=5){
+              detected();
+            }
+          }else {
+            _eyeTimeStart = _time;
+          }
+        }
+          /*widget.faceDetector.processImage(visionImage).then((List<Face> result) {
 
             if(result.isEmpty) {
               if(_time - _notFoundStart >=10){
@@ -122,7 +163,6 @@ class TimerWidgetState extends State<TimerWidget>{
 
               imglib.Image left_eyes = imglib.copyResize(crop_eye(img, leftEyesPosition!),width: 34,height: 26);
               imglib.Image right_eyes = imglib.copyResize(crop_eye(img,rightEyesPosition!),width: 34,height: 26);
-
               var left_eye_gray = grayscaleToByteListFloat32(left_eyes);
               var right_eye_gray = grayscaleToByteListFloat32(right_eyes);
 
@@ -138,6 +178,7 @@ class TimerWidgetState extends State<TimerWidget>{
               //print(right_open);
               //print(result[0].leftEyeOpenProbability);
               //print(result[0].rightEyeOpenProbability);
+
               if(left_open<0.3&&right_open<0.3){
                 //print('현재 시각 : ${_time}');
                 //print('눈 감기 시작한 시작 : ${_eyeTimeStart}');
@@ -148,11 +189,9 @@ class TimerWidgetState extends State<TimerWidget>{
                 _eyeTimeStart = _time;
               }
             }
+           */
             _isDetecting = false;
-          });
-
       }
-
     });
   }
   _makeDialog(title,content,callback){
@@ -218,7 +257,7 @@ class TimerWidgetState extends State<TimerWidget>{
               bool isFaceDetected = false;
               _timer = Timer.periodic(const Duration(seconds: 1), (timer) { tempTime++;});
               isTimerInit = true;
-              widget.controller.startImageStream((image) {
+              widget.controller.startImageStream((image) async {
                 if(_isDetecting) return;
                 _isDetecting=true;
                 ImageRotation rotation = rotationIntToImageRotation(widget.camera.sensorOrientation);
@@ -226,7 +265,23 @@ class TimerWidgetState extends State<TimerWidget>{
                 var metadata = buildMetaData(image,rotation);
                 var unit8list = planesToUnit8(image.planes);
                 final GoogleVisionImage visionImage = GoogleVisionImage.fromBytes(unit8list, metadata);
-                widget.faceDetector.processImage(visionImage).then((List<Face> result) {
+                List<Face> result = await widget.faceDetector.processImage(visionImage);
+                if(result.isNotEmpty) {
+                if(tempTime - detectingFaceTime >=5 && isFaceDetected == false){
+                    isFaceDetected = true;
+                    _timer.cancel();
+                    stopDetecting();
+                    _makeDialog("알림","얼굴을 감지를 완료했습니다. 핸드폰을 움직이지 말아주세요.",(context){
+                      Navigator.pop(context);
+                      });
+                    setState((){
+                    _selectedWidget = 2;
+                    });
+                  }
+                }else{
+                  detectingFaceTime=tempTime;
+                }
+                /*widget.faceDetector.processImage(visionImage).then((List<Face> result) {
 
                   if(result.isNotEmpty) {
                     if(tempTime - detectingFaceTime >=5 && isFaceDetected == false){
@@ -242,9 +297,8 @@ class TimerWidgetState extends State<TimerWidget>{
                     }
                   }else{
                     detectingFaceTime=tempTime;
-                  }
+                  }*/
                   _isDetecting = false;
-                });
               });
             },
             child: const Text("얼굴 찾기 시작"),
